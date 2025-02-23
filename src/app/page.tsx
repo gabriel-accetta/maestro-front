@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { useState } from 'react'
-import { Play, Pause, RotateCw, X } from 'lucide-react'
+import { Play, Pause, RotateCw, ImageUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -15,7 +15,16 @@ import {
 import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import { VideoSelectionModal } from '@/components/video-selection-modal'
 import { PerformanceSection } from '@/components/performance-section'
-import { TechniqueAnalysis } from '@/types/types'
+import { TechniqueAnalysis, techniqueAnalysisSchema } from '@/types/types'
+import { z } from 'zod'
+
+const analyzeVideoResponseSchema = z.object({
+  posture: techniqueAnalysisSchema.optional(),
+  handPositioning: techniqueAnalysisSchema.optional(),
+  tempo: techniqueAnalysisSchema.optional(),
+  pedalUsage: techniqueAnalysisSchema.optional(),
+  dynamics: techniqueAnalysisSchema.optional(),
+})
 
 export default function MaestroInterface() {
   const [videoFile, setVideoFile] = useState<File | null>(null)
@@ -37,89 +46,47 @@ export default function MaestroInterface() {
     }
   }
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     setIsAnalyzing(true)
-    // Simulating analysis process
-    setTimeout(() => {
-      setIsAnalyzing(false)
-      setAnalysisComplete(true)
-      // Simulated performance analysis results
-      setTechniqueAnalysisList([
-        {
-          title: 'Hand Positioning',
-          rating: 'Good',
-          feedback: [
-            'Keep your wrists slightly higher when playing chords',
-            'Maintain a more relaxed posture in your fingers',
-          ],
-          recommendations: [
-            {
-              type: 'Book',
-              title: "The Pianist's Guide to Hand Health",
-              description:
-                'Comprehensive guide on proper hand positioning and techniques.',
-              link: 'https://example.com/pianist-hand-health',
-            },
-            {
-              type: 'Video',
-              title: 'Mastering Hand Posture for Pianists',
-              description:
-                'Video tutorial on achieving the perfect hand position.',
-              link: 'https://example.com/hand-posture-tutorial',
-            },
-            {
-              type: 'Exercise',
-              title: 'Daily Wrist Flexibility Routine',
-              description:
-                'A set of exercises to improve wrist flexibility and strength.',
-            },
-          ],
-        },
-        {
-          title: 'Posture',
-          rating: 'Good',
-          feedback: [
-            "Overall posture is good, but there's room for improvement",
-            'Keep your back straighter and shoulders relaxed',
-          ],
-          recommendations: [
-            {
-              type: 'Video',
-              title: 'Perfect Piano Posture',
-              description:
-                'Learn the ideal posture for comfortable and efficient piano playing.',
-              link: 'https://example.com/piano-posture-tutorial',
-            },
-            {
-              type: 'Exercise',
-              title: 'Daily Posture Routine for Pianists',
-              description:
-                'A set of exercises to improve and maintain good posture at the piano.',
-            },
-            {
-              type: 'Book',
-              title: "The Pianist's Guide to Ergonomics",
-              description:
-                'Comprehensive guide on maintaining proper posture and preventing injuries.',
-              link: 'https://example.com/pianist-ergonomics-book',
-            },
-          ],
-        },
-        {
-          title: 'Tempo',
-          rating: 'Excellent',
-          feedback: ['Consistent tempo throughout most of the piece'],
-        },
-        {
-          title: 'Pedal Usage',
+
+    if (videoFile) {
+      const formData = new FormData()
+      formData.append('video', videoFile)
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/analyze', {
+          method: 'POST',
+          body: formData,
+        })
+        const data = await response.json()
+        console.log('API response:', data)
+
+        const parsedData = analyzeVideoResponseSchema.parse(data)
+
+        const defaultAnalysis: TechniqueAnalysis = {
+          title: '',
           rating: 'Not implemented',
-        },
-        {
-          title: 'Dynamics',
-          rating: 'Not implemented',
-        },
-      ])
-    }, 3000)
+        }
+
+        const updatedTechniqueAnalysisList: TechniqueAnalysis[] = [
+          parsedData.posture || { ...defaultAnalysis, title: 'Posture' },
+          parsedData.tempo || { ...defaultAnalysis, title: 'Tempo' },
+          parsedData.handPositioning || {
+            ...defaultAnalysis,
+            title: 'Hand Positioning',
+          },
+          parsedData.pedalUsage || { ...defaultAnalysis, title: 'Pedal Usage' },
+          parsedData.dynamics || { ...defaultAnalysis, title: 'Dynamics' },
+        ]
+
+        setTechniqueAnalysisList(updatedTechniqueAnalysisList)
+      } catch (error) {
+        console.error('Error calling API:', error)
+      }
+    }
+
+    setIsAnalyzing(false)
+    setAnalysisComplete(true)
   }
 
   const togglePlayPause = () => {
@@ -169,7 +136,7 @@ export default function MaestroInterface() {
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline">
-                  <X className="mr-2 h-4 w-4" />
+                  <ImageUp className="mr-2 h-4 w-4" />
                   Change Video
                 </Button>
               </DialogTrigger>

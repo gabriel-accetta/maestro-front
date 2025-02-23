@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { RecommendationSection } from './recommendation-section'
+import { ImageGallery } from './image-gallery'
 import { TechniqueAnalysis } from '@/types/types'
 
 const performanceColorMap: Record<TechniqueAnalysis['rating'], string> = {
@@ -13,6 +14,7 @@ const performanceColorMap: Record<TechniqueAnalysis['rating'], string> = {
   Good: 'bg-yellow-100 dark:bg-yellow-900',
   Excellent: 'bg-green-100 dark:bg-green-900',
   'Not implemented': 'bg-gray-100 dark:bg-gray-900',
+  'Not enough data': 'bg-gray-100 dark:bg-gray-900',
 }
 
 interface PerformanceSectionProps {
@@ -36,6 +38,9 @@ export function PerformanceSection({ section }: PerformanceSectionProps) {
         )}
         {section.recommendations && section.rating !== 'Excellent' && (
           <RecommendationSection recommendations={section.recommendations} />
+        )}
+        {section.media && section.media.length > 0 && (
+          <ImageGallery images={section.media} />
         )}
       </CardContent>
     </Card>
