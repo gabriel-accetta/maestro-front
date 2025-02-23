@@ -36,9 +36,11 @@ export function PerformanceSection({ section }: PerformanceSectionProps) {
             ))}
           </ul>
         )}
-        {section.recommendations && section.rating !== 'Excellent' && (
-          <RecommendationSection recommendations={section.recommendations} />
-        )}
+        {section.recommendations &&
+          section.recommendations.length > 0 &&
+          section.rating !== 'Excellent' && (
+            <RecommendationSection recommendations={section.recommendations} />
+          )}
         {section.media && section.media.length > 0 && (
           <ImageGallery images={section.media} />
         )}

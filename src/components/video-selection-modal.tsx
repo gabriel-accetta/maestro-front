@@ -14,19 +14,25 @@ import {
 interface VideoSelectionModalProps {
   onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void
   onClose: () => void
+  title?: string
+  description?: string
 }
 
 export function VideoSelectionModal({
   onFileUpload,
   onClose,
+  title = 'Select Video',
+  description = 'Upload a video file to analyze your piano performance.',
 }: VideoSelectionModalProps) {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onFileUpload(event)
+  }
+
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>Select Video</DialogTitle>
-        <DialogDescription>
-          Upload a video file to analyze your piano performance.
-        </DialogDescription>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
@@ -44,13 +50,15 @@ export function VideoSelectionModal({
               id="video-upload"
               type="file"
               accept="video/*"
-              onChange={onFileUpload}
+              onChange={handleFileUpload}
               className="hidden"
             />
           </div>
         </div>
       </div>
-      <Button onClick={onClose}>Close</Button>
+      <Button type="button" onClick={onClose}>
+        Close
+      </Button>
     </DialogContent>
   )
 }
